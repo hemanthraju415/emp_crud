@@ -8,14 +8,23 @@ import java.awt.Image;
 import java.awt.Label;
 import java.awt.TextField;
 import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.HashSet;
 
+import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.table.DefaultTableModel;
 
 public class Emp_Interface_Ui {
-	private static Frame mainframe = null;
+	protected static Frame mainframe = null;
 	private static Image frameicon = null;
 	private static Font mainfont = null;
 	private static Font labelfont = null;
@@ -26,29 +35,116 @@ public class Emp_Interface_Ui {
 	private static Label sallbl = null;
 	private static Label deptnolbl = null;
 	private static Label hiredatelbl = null;
-	private static TextField empnofld = null;
-	private static TextField namefld = null;
-	private static TextField jobfld = null;
-	private static TextField salfld = null;
-	private static Choice deptnochc = null;
-	private static Button firstbtn = null;
-	private static Button nextbtn = null;
-	private static Button prevbtn = null;
-	private static Button lastbtn = null;
-	private static Button addbtn = null;
-	private static Button editbtn = null;
-	private static Button delbtn = null;
-	private static Button savebtn = null;
+	protected static TextField empnofld = null;
+	protected static TextField namefld = null;
+	protected static TextField jobfld = null;
+	protected static TextField salfld = null;
+	protected static Choice deptnochc = null;
+	protected static DateTextField hiredatefld = null;
+	protected static Button firstbtn = null;
+	protected static Button nextbtn = null;
+	protected static Button prevbtn = null;
+	protected static Button lastbtn = null;
+	protected static Button addbtn = null;
+	protected static Button editbtn = null;
+	protected static Button delbtn = null;
+	protected static Button savebtn = null;
 	private static Button clearbtn = null;
 	private static Button exitbtn = null;
-
+	protected static int selected_option = 0;
+	private static final HashSet<String> DEPT_NO_CHOICE = new HashSet<>();
+	// result set to select get data
+	protected static ResultSet result_set_scrollable = Jdbc_Crud_Methods.getResulSet();
 	// private static
-	public static void main(String[] args) {
-		// creating a main frame for the app and setting the parameters
+	protected static DefaultTableModel Table_Content = new DefaultTableModel();
+	protected static JTable table_Reference = null;
+	protected static JScrollPane table_Scroll_pane = null;
+	static {
+		try {
+			while (result_set_scrollable.next()) {
+				DEPT_NO_CHOICE.add(String.valueOf(result_set_scrollable.getInt("deptno")));
+			}
+			DEPT_NO_CHOICE.add("40");
+		} catch (SQLException e) {
+		}
+
+	}
+	static {
 		mainframe = new Frame("EMP_CRUD_APP");
 		mainframe.setSize(820, 800);
 		mainframe.setLayout(null);
 		mainframe.setVisible(true);
+		Actions_Events_Emp_Crud.set_Table_Data();
+		table_Reference = new JTable(Table_Content);
+		// table_Reference.addMouseListener(new MouseListener() {
+		//
+		// @Override
+		// public void mouseClicked(MouseEvent e) {
+		// if (e.getButton() == MouseEvent.BUTTON1) {
+		// try {
+		// result_set_scrollable.absolute(table_Reference.getSelectedRow() + 1);
+		// } catch (SQLException e1) {
+		// e1.printStackTrace();
+		// }
+		// Actions_Events_Emp_Crud.set_Records();
+		// }
+		// }
+		//
+		// @Override
+		// public void mousePressed(MouseEvent e) {
+		// // TODO Auto-generated method stub
+		//
+		// }
+		//
+		// @Override
+		// public void mouseReleased(MouseEvent e) {
+		// // TODO Auto-generated method stub
+		//
+		// }
+		//
+		// @Override
+		// public void mouseEntered(MouseEvent e) {
+		// // TODO Auto-generated method stub
+		//
+		// }
+		//
+		// @Override
+		// public void mouseExited(MouseEvent e) {
+		// // TODO Auto-generated method stub
+		//
+		// }
+		//
+		// });
+		table_Reference.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+
+			@Override
+			public void valueChanged(ListSelectionEvent e) {
+				// TODO Auto-generated method stub
+				try {
+					int selected_arr[] = table_Reference.getSelectedRows();
+					Actions_Events_Emp_Crud.SELECTED_COLUMNS.clear();
+					if (selected_arr.length > 1) {
+						for (int i : selected_arr) {
+							Actions_Events_Emp_Crud.SELECTED_COLUMNS.add(i);
+
+						}
+					} else
+						result_set_scrollable.absolute(table_Reference.getSelectedRow() + 1);
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
+				Actions_Events_Emp_Crud.set_TextFields();
+			}
+		});
+		table_Scroll_pane = new JScrollPane(table_Reference);
+		table_Scroll_pane.setBounds(20, 450, 780, 300);
+		table_Scroll_pane.setEnabled(true);
+		mainframe.add(table_Scroll_pane);
+	}
+
+	public Emp_Interface_Ui() {
+		// creating a main frame for the app and setting the parameters
+
 		mainframe.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent we) {
 				System.exit(0);
@@ -113,6 +209,7 @@ public class Emp_Interface_Ui {
 
 		deptnochc = new Choice();
 		deptnochc.setBounds(200, 250, 200, 20);
+		DEPT_NO_CHOICE.forEach(deptnochc::add);
 		mainframe.add(deptnochc);
 
 		mainframe.add(deptnolbl);
@@ -121,87 +218,131 @@ public class Emp_Interface_Ui {
 		hiredatelbl.setFont(labelfont);
 		mainframe.add(hiredatelbl);
 
-		DateTextField dtf = new DateTextField();
-		dtf.setBounds(600, 250, 150, 20);
-		mainframe.add(dtf);
-		// Properties p = new Properties();
-		// p.put("text.today", "Today");
-		// p.put("text.month", "Month");
-		// p.put("text.year", "Year");
-		// UtilDateModel model = new UtilDateModel();
-		// // model.setDate(20,04,2014);
-		// JDatePanelImpl datePanel = new JDatePanelImpl(model, p);
-		// JDatePickerImpl datePicker = new JDatePickerImpl(datePanel, new DateLabelFormatter());
-		// datePanel.setBounds(600, 250, 150, 20);
-		// mainframe.add(datePicker);
-		// try {
-		// UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
-		// } catch (Exception e) {
-		// }
-		// JFrame testFrame = new JFrame();
-		// testFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-		// testFrame.setSize(500, 500);
-		// JPanel jPanel = new JPanel();
-		// DatePicker picker = new JDatePicker();
-		// picker.setTextEditable(true);
-		// picker.setShowYearButtons(true);
-		// jPanel.add((JComponent) picker);
-		// JPanel DatePanel = new JPanel();
-		// DatePanel.setLayout(new BorderLayout());
-		// DatePanel.add(jPanel, BorderLayout.WEST);
-		// BorderLayout fb = new BorderLayout();
-		// testFrame.setLayout(fb);
-		// testFrame.getContentPane().add(DatePanel, BorderLayout.WEST);
-		// testFrame.setVisible(true);
+		hiredatefld = new DateTextField();
+		hiredatefld.setBounds(600, 250, 150, 20);
+		mainframe.add(hiredatefld);
+
 		// buttons for iterating the records
 		firstbtn = new Button("First");
 		firstbtn.setBounds(50, 300, 100, 20);
+		firstbtn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				Actions_Events_Emp_Crud.first_Action();
+			}
+		});
 		mainframe.add(firstbtn);
 
 		nextbtn = new Button("Next");
 		nextbtn.setBounds(250, 300, 100, 20);
+		nextbtn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				Actions_Events_Emp_Crud.next_Action();
+			}
+		});
 		mainframe.add(nextbtn);
 
-		prevbtn = new Button("Prev");
+		prevbtn = new Button("Previous");
 		prevbtn.setBounds(450, 300, 100, 20);
+		mainframe.add(prevbtn);
+		prevbtn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				Actions_Events_Emp_Crud.prev_Action();
+			}
+		});
 		mainframe.add(prevbtn);
 
 		lastbtn = new Button("Last");
 		lastbtn.setBounds(650, 300, 100, 20);
+		lastbtn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				Actions_Events_Emp_Crud.last_Action();
+			}
+		});
 		mainframe.add(lastbtn);
 
 		// buttons for crud
 		addbtn = new Button("Add");
 		addbtn.setBounds(50, 340, 100, 20);
+		addbtn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					Jdbc_Crud_Methods.JDBC_CONNECTION.setAutoCommit(true);
+					Actions_Events_Emp_Crud.add_Action();
+				} catch (SQLException e1) {
+
+				}
+
+			}
+		});
 		mainframe.add(addbtn);
 
 		editbtn = new Button("Edit");
 		editbtn.setBounds(250, 340, 100, 20);
+		editbtn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				Actions_Events_Emp_Crud.edit_Action();
+			}
+		});
 		mainframe.add(editbtn);
 
-		delbtn = new Button("Del");
+		delbtn = new Button("Delete");
 		delbtn.setBounds(450, 340, 100, 20);
+		delbtn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				selected_option = JOptionPane.showConfirmDialog(mainframe, "are you you want to delete the record?");
+				if (selected_option == JOptionPane.YES_OPTION) {
+					Actions_Events_Emp_Crud.delete_Action();
+					if (Actions_Events_Emp_Crud.deleted_counter != null
+							&& Actions_Events_Emp_Crud.deleted_counter.counter > 0) {
+						JOptionPane.showMessageDialog(null,
+								Actions_Events_Emp_Crud.deleted_counter.counter + " rows deleted succesfully",
+								"success", JOptionPane.INFORMATION_MESSAGE);
+						Actions_Events_Emp_Crud.deleted_counter = null;
+					} else
+						JOptionPane.showMessageDialog(null, "1 row deleted succesfully", "success BOSS",
+								JOptionPane.INFORMATION_MESSAGE);
+				}
+
+			}
+		});
 		mainframe.add(delbtn);
 
 		savebtn = new Button("Save");
 		savebtn.setBounds(650, 340, 100, 20);
+		savebtn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				selected_option = JOptionPane.showConfirmDialog(mainframe, "are you sure you want to save the record?");
+				if (selected_option == JOptionPane.YES_OPTION) {
+					Actions_Events_Emp_Crud.save_Action();
+					JOptionPane.showMessageDialog(null, "row updated succesfully", "success BOSS",
+							JOptionPane.INFORMATION_MESSAGE);
+				}
+			}
+		});
 		mainframe.add(savebtn);
 
 		// buttons for clear screen and exit app
 		clearbtn = new Button("Clear");
 		clearbtn.setBounds(150, 380, 100, 20);
+		clearbtn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				Actions_Events_Emp_Crud.clear_Action();
+			}
+		});
 		mainframe.add(clearbtn);
+
 		exitbtn = new Button("Exit");
 		exitbtn.setBounds(550, 380, 100, 20);
+		exitbtn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				System.exit(0);
+			}
+		});
 		mainframe.add(exitbtn);
-		String data[][] = {};
-		String column[] = { "S.No", "Emp No", "Emp Name", "Job", "Salary", "Dept No", "Hire Date" };
-		JTable jt = new JTable(data, column);
 
-		JScrollPane sp = new JScrollPane(jt);
-		sp.setBounds(20, 450, 780, 300);
-		sp.setEnabled(true);
-		mainframe.add(sp);
 	}
 
+	public static void main(String[] args) {
+		new Emp_Interface_Ui();
+	}
 }

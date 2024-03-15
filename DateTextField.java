@@ -33,6 +33,10 @@ import javax.swing.event.ChangeListener;
 
 public class DateTextField extends TextField {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -486095554171519897L;
 	private static String DEFAULT_DATE_FORMAT = "MM/dd/yyyy";
 	private static final int DIALOG_WIDTH = 200;
 	private static final int DIALOG_HEIGHT = 200;
@@ -129,6 +133,10 @@ public class DateTextField extends TextField {
 	}
 
 	private class DatePanel extends JPanel implements ChangeListener {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 8892253017944387821L;
 		int startYear = 1980;
 		int lastYear = 2050;
 
